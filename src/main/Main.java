@@ -13,33 +13,42 @@ public class Main {
             System.exit(1);
         }
 
-        Puzzle puzzle = new Puzzle(readFile(args[0]));
-        int[] resultMatrix = puzzle.calculate();
+        int[][] goal = {{1, 2, 3}, {4, 5, 6}, {7, 8, 0}};
+
+        Puzzle puzzle = new Puzzle(readFile(args[0]), goal);
+        int[][] resultMatrix = puzzle.calculate();
 
         StringBuilder result = new StringBuilder();
-        for (int digit : resultMatrix) {
-            result.append(digit).append(" ");
+        for (int[] row : resultMatrix) {
+            for (int digit : row) {
+                result.append(digit).append(" ");
+            }
         }
         writeFile(args[1], result.toString());
     }
 
 
-    public static int[] readFile(String fileInput) throws FileNotFoundException, NumberFormatException, IndexOutOfBoundsException {
+    public static int[][] readFile(String fileInput) throws FileNotFoundException, NumberFormatException, IndexOutOfBoundsException {
         //build String Array from File
         // read file
         try (Scanner in = new Scanner(new File(fileInput))) {
             int numberN = Integer.parseInt(in.nextLine());
-            int[] matrix = new int[(numberN * numberN) + 1];
-            matrix[0] = numberN;
-            int i = 1;
+            int[][] matrix = new int[numberN][numberN];
+
+            int i = 0;
+            int j = 0;
             while (in.hasNextLine()) {
                 // read numbers per line
                 String row = in.nextLine();
                 Scanner scRow = new Scanner(row);
                 while (scRow.hasNextInt()) {
-                    matrix[i] = scRow.nextInt();
+                    matrix[i][j] = scRow.nextInt();
+                    i++;
                 }
+                scRow.close();
+                j++;
             }
+            in.close();
             return matrix;
         }
 
