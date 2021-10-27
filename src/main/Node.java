@@ -11,13 +11,13 @@ public class Node implements Comparable<Node> {
     private int x;
     private int y;
 
-    private Node nodeParent;
 
     private ArrayList<Node> nodeChildren;
 
-    private double g; //weight
-    private double h; //heuristic
-    private double f; //sum og g(v) and h(v)
+    private Node nodeParent;
+    private double weight; //weight / depth
+    private double heuristic; //heuristic
+    private double costF; //sum og g(v) and h(v)
 
     public Node(int[][] puzzle) {
         this.puzzle = puzzle;
@@ -52,7 +52,7 @@ public class Node implements Comparable<Node> {
         return nodeParent;
     }
 
-    public void setStateParent(Node nodeParent) {
+    public void setParent(Node nodeParent) {
         this.nodeParent = nodeParent;
     }
 
@@ -64,33 +64,33 @@ public class Node implements Comparable<Node> {
         this.nodeChildren = nodeChildren;
     }
 
-    public double getG() {
-        return g;
+    public double getWeight() {
+        return weight;
     }
 
-    public void setG(double g) {
-        this.g = g;
+    public void setWeight(double weight) {
+        this.weight = weight;
     }
 
-    public double getH() {
-        return h;
+    public double getHeuristic() {
+        return heuristic;
     }
 
-    public void setH(double h) {
-        this.h = h;
+    public void setHeuristic(double heuristic) {
+        this.heuristic = heuristic;
     }
 
-    public double getF() {
-        return f;
+    public double getCostF() {
+        return costF;
     }
 
-    public void setF(double f) {
-        this.f = f;
+    public void setCostF(double costF) {
+        this.costF = costF;
     }
 
     @Override
     public int compareTo(Node o) {
-        return Double.compare(this.f, o.getF());
+        return Double.compare(this.costF, o.getCostF());
     }
 
 }

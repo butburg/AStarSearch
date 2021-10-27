@@ -16,7 +16,7 @@ public class Main {
         int[][] goal = {{1, 2, 3}, {4, 5, 6}, {7, 8, 0}};
 
         Puzzle puzzle = new Puzzle(readFile(args[0]), goal);
-        int[][] resultMatrix = puzzle.calculate();
+        int[][] resultMatrix = puzzle.calculate().getPuzzle();
 
         StringBuilder result = new StringBuilder();
         for (int[] row : resultMatrix) {
