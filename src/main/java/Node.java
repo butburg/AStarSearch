@@ -1,7 +1,8 @@
-package main;
+package main.java;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * @author github.com/butburg (EW) on Okt 2021
@@ -15,6 +16,10 @@ public class Node implements Comparable<Node> {
 
     private ArrayList<Node> nodeChildren;
 
+    public Node getNodeParent() {
+        return nodeParent;
+    }
+
     private Node nodeParent;
     private double weight; //weight / depth
     private double heuristic; //heuristic
@@ -24,7 +29,7 @@ public class Node implements Comparable<Node> {
     private int numberN;
 
     public Node(int[][] matrix, int previousMovement) {
-        System.out.println("New Node");
+        //System.out.println("New Node");
         this.matrix = matrix;
         numberN = matrix.length;
         findBlank(matrix);
@@ -32,14 +37,15 @@ public class Node implements Comparable<Node> {
         PREVMOVE = previousMovement;
     }
 
-    public void printMatrix() {
+    public String printMatrix() {
+        StringBuilder matrixPrint = new StringBuilder();
         for (int[] row : matrix) {
             for (int digit : row) {
-                System.out.print(digit + " ");
+                matrixPrint.append(digit + " ");
             }
-            System.out.println();
+            matrixPrint.append("\n");
         }
-        System.out.println();
+        return matrixPrint.toString();
     }
 
     private Point findBlank(int[][] matrix) {
@@ -129,7 +135,7 @@ public class Node implements Comparable<Node> {
             }
         }
         costF = weight + heuristic;
-        return this.heuristic=heuristic;
+        return this.heuristic = heuristic;
     }
 
     public double getHeuristic() {
@@ -143,6 +149,15 @@ public class Node implements Comparable<Node> {
 
     public void setCostF(double costF) {
         this.costF = costF;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Node testNode = (Node) obj;
+        if (Arrays.deepEquals(testNode.getMatrixCopy(), this.getMatrixCopy()))
+            return true;
+        else
+            return false;
     }
 
     @Override

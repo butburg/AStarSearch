@@ -1,6 +1,5 @@
-package main;
+package main.java;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -10,29 +9,65 @@ import java.util.PriorityQueue;
  */
 public class Puzzle {
 
-    //TODO find better way, maybe use enum
-    private static final int UP = 1;
-    private static final int DOWN = 2;
-    private static final int LEFT = 3;
-    private static final int RIGHT = 4;
-    private final int numberN;
 
-    private List<Integer> solutionSeq = new ArrayList<>();
+    //TODO find better way, maybe use enum
+    private final int UP = 1;
+    private final int DOWN = 2;
+    private final int LEFT = 3;
+    private final int RIGHT = 4;
+    private final int NUMBER_N;
+
+    public int getLIMIT() {
+        return LIMIT;
+    }
+
+    private final int LIMIT = 3000;
+
+    private String moveSeq;
 
     private Node parentNode;
     private Node goal;
     PriorityQueue<Node> liveNodes = new PriorityQueue<>();
     private List<Node> visited = new LinkedList<>();
+
+    public int getSeenNodes() {
+        return seenNodes;
+    }
+
     private int seenNodes = 0;
 
+    public int getNUMBER_N() {
+        return NUMBER_N;
+    }
+
+    public String getMoveSeq() {
+        return moveSeq;
+    }
+
+    public Node getParentNode() {
+        return parentNode;
+    }
+
+    public Node getGoal() {
+        return goal;
+    }
+
+    public PriorityQueue<Node> getLiveNodes() {
+        return liveNodes;
+    }
+
+    public List<Node> getVisited() {
+        return visited;
+    }
+
     public Puzzle(int[][] inputMatrix, int[][] goalMatrix) {
-        this.numberN = inputMatrix[0].length;
+        this.NUMBER_N = inputMatrix[0].length;
         parentNode = new Node(inputMatrix, 0);
         goal = new Node(goalMatrix, 0);
-        System.out.println("START");
-        printMatrix(parentNode);
-        printMatrix(goal);
-        System.out.println("----");
+        System.out.println("-START-");
+        System.out.println(printMatrix(parentNode));
+        System.out.print(printMatrix(goal));
+        System.out.println("------");
     }
 
 
@@ -46,22 +81,45 @@ public class Puzzle {
         goal.setParent(null);
 
         liveNodes.add(parentNode);
-
-        while (!liveNodes.isEmpty()) {
+        Node current = null;
+        while (!liveNodes.isEmpty() && seenNodes < LIMIT) {
             System.out.println("liveNodes: " + liveNodes.size());
-            Node current = liveNodes.peek();
-
+            current = liveNodes.peek();
+            seenNodes++;
             if (current.equals(goal)) {
                 System.out.println("found solution" + current.getWeight());
                 System.out.println("checked nodes: " + seenNodes);
+                moveSeq = tracePath(current, "");
                 return current;
             }
-            seenNodes++;
+
             liveNodes.remove(current);
             visited.add(current);
             findChildren(current);
         }
         return null;
+    }
+
+
+    private String tracePath(Node current, String moves) {
+        switch (current.getPREVMOVE()) {
+            case UP:
+                moves = "U" + moves;
+                break;
+            case DOWN:
+                moves = "D" + moves;
+                break;
+            case LEFT:
+                moves = "L" + moves;
+                break;
+            case RIGHT:
+                moves = "R" + moves;
+                break;
+            default:
+                return moves;
+        }
+        System.out.println(current.printMatrix());
+        return tracePath(current.getNodeParent(), moves);
     }
 
     private void findChildren(Node current) {
@@ -73,8 +131,8 @@ public class Puzzle {
 
     private void move(int direction, Node current) {
         if (movementValid(direction, current)) {
-            System.out.println("Move " + direction + " is valid. (U,D,L,R)" +"for");
-            printMatrix(current);
+            //System.out.println("Move " + direction + " is valid. (U,D,L,R)" + "for");
+            //printMatrix(current);
             Node child = createChild(direction, current);
 
             child.setParent(current);
@@ -121,13 +179,13 @@ public class Puzzle {
                 if (current.getY() - 1 >= 0 && current.getPREVMOVE() != DOWN) return true;
                 break;
             case DOWN:
-                if (current.getY() + 1 < numberN && current.getPREVMOVE() != UP) return true;
+                if (current.getY() + 1 < NUMBER_N && current.getPREVMOVE() != UP) return true;
                 break;
             case LEFT:
                 if (current.getX() - 1 >= 0 && current.getPREVMOVE() != RIGHT) return true;
                 break;
             case RIGHT:
-                if (current.getX() + 1 < numberN && current.getPREVMOVE() != LEFT) return true;
+                if (current.getX() + 1 < NUMBER_N && current.getPREVMOVE() != LEFT) return true;
                 break;
         }
         return false;
@@ -157,14 +215,18 @@ public class Puzzle {
                 matrix[y][x + 1] = 0;
                 break;
         }
-        System.out.println("After Move new Child: " + direction);
+        //System.out.println("After Move new Child: " + direction);
         Node node = new Node(matrix, direction);
-        node.printMatrix();
+        //node.printMatrix();
         return node;
     }
 
 
-    private void printMatrix(Node node) {
-        node.printMatrix();
+    private String printMatrix(Node node) {
+        return node.printMatrix();
+    }
+
+    public String getMoves() {
+        return moveSeq;
     }
 }
