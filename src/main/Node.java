@@ -1,12 +1,13 @@
 package main;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 /**
  * @author github.com/butburg (EW) on Okt 2021
  */
 public class Node implements Comparable<Node> {
-    private int[][] puzzle;
+    private int[][] matrix;
     //empty field location in puzzle;
     private int x;
     private int y;
@@ -19,17 +20,51 @@ public class Node implements Comparable<Node> {
     private double heuristic; //heuristic
     private double costF; //sum og g(v) and h(v)
 
-    public Node(int[][] puzzle) {
-        this.puzzle = puzzle;
+    private int PREVMOVE = 0;
+    private int numberN;
+
+    public Node(int[][] matrix, int previousMovement) {
+        System.out.println("New Node");
+        this.matrix = matrix;
+        numberN = matrix.length;
+        findBlank(matrix);
         nodeChildren = new ArrayList<>();
+        PREVMOVE = previousMovement;
     }
 
-    public int[][] getPuzzle() {
-        return puzzle;
+    public void printMatrix() {
+        for (int[] row : matrix) {
+            for (int digit : row) {
+                System.out.print(digit + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
-    public void setPuzzle(int[][] puzzle) {
-        this.puzzle = puzzle;
+    private Point findBlank(int[][] matrix) {
+        for (int y = 0; y < numberN; y++) {
+            int[] row = matrix[y];
+            for (int x = 0; x < row.length; x++) {
+                if (matrix[y][x] == 0) {
+                    setX(x);
+                    setY(y);
+                }
+            }
+        }
+        return new Point(x, y);
+    }
+
+    public int[][] getMatrixCopy() {
+        int[][] copyMatrix = new int[numberN][numberN];
+        for (int i = 0; i < numberN; i++)
+            for (int j = 0; j < matrix[i].length; j++)
+                copyMatrix[i][j] = matrix[i][j];
+        return copyMatrix;
+    }
+
+    public void setMatrix(int[][] matrix) {
+        this.matrix = matrix;
     }
 
     public int getX() {
@@ -72,13 +107,35 @@ public class Node implements Comparable<Node> {
         this.weight = weight;
     }
 
+    public double setHeuristicCost(Node child, Node goal) {
+        // calculate heuristic
+        double heuristic = 0.0;
+        for (int row = 0; row < numberN; row++) {
+            for (int col = 0; col < numberN; col++) {
+                int[][] childMatrix = child.getMatrixCopy();
+                int[][] goalMatrix = goal.getMatrixCopy();
+                int find = childMatrix[col][row];
+
+                if (find != 0) {
+                    for (int rowG = 0; rowG < numberN; rowG++) {
+                        for (int colG = 0; colG < numberN; colG++) {
+                            if (goalMatrix[colG][rowG] == find) {
+                                heuristic += Math.abs(rowG - row) + Math.abs(colG - col);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        costF = weight + heuristic;
+        return this.heuristic=heuristic;
+    }
+
     public double getHeuristic() {
         return heuristic;
     }
 
-    public void setHeuristic(double heuristic) {
-        this.heuristic = heuristic;
-    }
 
     public double getCostF() {
         return costF;
@@ -93,4 +150,11 @@ public class Node implements Comparable<Node> {
         return Double.compare(this.costF, o.getCostF());
     }
 
+    public int getPREVMOVE() {
+        return PREVMOVE;
+    }
+
+    public void setPREVMOVE(int PREVMOVE) {
+        this.PREVMOVE = PREVMOVE;
+    }
 }

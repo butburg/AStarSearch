@@ -27,9 +27,14 @@ public class Puzzle {
 
     public Puzzle(int[][] inputMatrix, int[][] goalMatrix) {
         this.numberN = inputMatrix[0].length;
-        parentNode = new Node(inputMatrix);
-        goal = new Node(goalMatrix);
+        parentNode = new Node(inputMatrix, 0);
+        goal = new Node(goalMatrix, 0);
+        System.out.println("START");
+        printMatrix(parentNode);
+        printMatrix(goal);
+        System.out.println("----");
     }
+
 
     public Node calculate() {
         parentNode.setCostF(0);
@@ -43,7 +48,7 @@ public class Puzzle {
         liveNodes.add(parentNode);
 
         while (!liveNodes.isEmpty()) {
-
+            System.out.println("liveNodes: " + liveNodes.size());
             Node current = liveNodes.peek();
 
             if (current.equals(goal)) {
@@ -68,11 +73,13 @@ public class Puzzle {
 
     private void move(int direction, Node current) {
         if (movementValid(direction, current)) {
+            System.out.println("Move " + direction + " is valid. (U,D,L,R)" +"for");
+            printMatrix(current);
             Node child = createChild(direction, current);
 
-            child.setWeight(current.getWeight() + 1);
             child.setParent(current);
-            child.setHeuristic(getHeuristicCost(child, goal));
+            child.setWeight(current.getWeight() + 1);
+            child.setHeuristicCost(child, goal);
 
 
             //TODO beautify code here
@@ -108,19 +115,56 @@ public class Puzzle {
     }
 
     private boolean movementValid(int direction, Node current) {
-        //TODO check if the movement is valid, aka inside the grid
-        return true;
+        // check if the movement is valid, aka inside the grid
+        switch (direction) {
+            case UP:
+                if (current.getY() - 1 >= 0 && current.getPREVMOVE() != DOWN) return true;
+                break;
+            case DOWN:
+                if (current.getY() + 1 < numberN && current.getPREVMOVE() != UP) return true;
+                break;
+            case LEFT:
+                if (current.getX() - 1 >= 0 && current.getPREVMOVE() != RIGHT) return true;
+                break;
+            case RIGHT:
+                if (current.getX() + 1 < numberN && current.getPREVMOVE() != LEFT) return true;
+                break;
+        }
+        return false;
     }
 
     private Node createChild(int direction, Node current) {
-        //TODO move the empty space with swapping
-        int[][] switchedMatrix = {};
-        return new Node(switchedMatrix);
+        // move the empty space with swapping
+        int[][] matrix = current.getMatrixCopy();
+        int x = current.getX();
+        int y = current.getY();
+
+        switch (direction) {
+            case UP:
+                matrix[y][x] = matrix[y - 1][x];
+                matrix[y - 1][x] = 0;
+                break;
+            case DOWN:
+                matrix[y][x] = matrix[y + 1][x];
+                matrix[y + 1][x] = 0;
+                break;
+            case LEFT:
+                matrix[y][x] = matrix[y][x - 1];
+                matrix[y][x - 1] = 0;
+                break;
+            case RIGHT:
+                matrix[y][x] = matrix[y][x + 1];
+                matrix[y][x + 1] = 0;
+                break;
+        }
+        System.out.println("After Move new Child: " + direction);
+        Node node = new Node(matrix, direction);
+        node.printMatrix();
+        return node;
     }
 
-    private double getHeuristicCost(Node child, Node goal) {
-        //TODO calculate heuristic
-        //Math.abs(v.getX() - v.getY()) + Math.abs(w.getX() - w.getY());
-        return 0;
+
+    private void printMatrix(Node node) {
+        node.printMatrix();
     }
 }
