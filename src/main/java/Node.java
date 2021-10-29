@@ -1,6 +1,6 @@
 package main.java;
 
-import java.awt.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -13,28 +13,37 @@ public class Node implements Comparable<Node> {
     private int x;
     private int y;
 
-
+    //list of all new states/moved nodes from this node
     private ArrayList<Node> nodeChildren;
-
-    public Node getNodeParent() {
-        return nodeParent;
-    }
-
     private Node nodeParent;
-    private double weight; //weight / depth
+    private double depth; //weight / depth
     private double heuristic; //heuristic
     private double costF; //sum og g(v) and h(v)
-
-    private int PREVMOVE = 0;
+    private Movement prevMove;
     private int numberN;
 
-    public Node(int[][] matrix, int previousMovement) {
-        //System.out.println("New Node");
+    public Node(int[][] matrix, Movement previousMovement) {
         this.matrix = matrix;
-        numberN = matrix.length;
-        findBlank(matrix);
-        nodeChildren = new ArrayList<>();
-        PREVMOVE = previousMovement;
+        this.numberN = matrix.length;
+        setBlankPosition(matrix);
+        this.nodeChildren = new ArrayList<>();
+        this.prevMove = previousMovement;
+    }
+
+    private void setBlankPosition(int[][] matrix) {
+        for (int y = 0; y < numberN; y++) {
+            int[] row = matrix[y];
+            for (int x = 0; x < row.length; x++) {
+                if (matrix[y][x] == 0) {
+                    setX(x);
+                    setY(y);
+                }
+            }
+        }
+    }
+
+    public double calculateF() {
+        return costF = depth + heuristic;
     }
 
     public String printMatrix() {
@@ -48,17 +57,28 @@ public class Node implements Comparable<Node> {
         return matrixPrint.toString();
     }
 
-    private Point findBlank(int[][] matrix) {
-        for (int y = 0; y < numberN; y++) {
-            int[] row = matrix[y];
-            for (int x = 0; x < row.length; x++) {
-                if (matrix[y][x] == 0) {
-                    setX(x);
-                    setY(y);
+    public double setHeuristicCost(Node goal) {
+        // calculate heuristic
+        double heuristic = 0.0;
+        for (int row = 0; row < numberN; row++) {
+            for (int col = 0; col < numberN; col++) {
+
+                int[][] goalMatrix = goal.getMatrixCopy();
+                int find = matrix[col][row];
+
+                if (find != 0) {
+                    for (int rowG = 0; rowG < numberN; rowG++) {
+                        for (int colG = 0; colG < numberN; colG++) {
+                            if (goalMatrix[colG][rowG] == find) {
+                                heuristic += Math.abs(rowG - row) + Math.abs(colG - col);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
-        return new Point(x, y);
+        return this.heuristic = heuristic;
     }
 
     public int[][] getMatrixCopy() {
@@ -67,10 +87,6 @@ public class Node implements Comparable<Node> {
             for (int j = 0; j < matrix[i].length; j++)
                 copyMatrix[i][j] = matrix[i][j];
         return copyMatrix;
-    }
-
-    public void setMatrix(int[][] matrix) {
-        this.matrix = matrix;
     }
 
     public int getX() {
@@ -89,59 +105,29 @@ public class Node implements Comparable<Node> {
         this.y = y;
     }
 
-    public Node getStateParent() {
-        return nodeParent;
-    }
-
     public void setParent(Node nodeParent) {
         this.nodeParent = nodeParent;
+    }
+
+    public Node getParent() {
+        return nodeParent;
     }
 
     public ArrayList<Node> getStateChildren() {
         return nodeChildren;
     }
 
-    public void setStateChildren(ArrayList<Node> nodeChildren) {
-        this.nodeChildren = nodeChildren;
+    public double getDepth() {
+        return depth;
     }
 
-    public double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    public double setHeuristicCost(Node child, Node goal) {
-        // calculate heuristic
-        double heuristic = 0.0;
-        for (int row = 0; row < numberN; row++) {
-            for (int col = 0; col < numberN; col++) {
-                int[][] childMatrix = child.getMatrixCopy();
-                int[][] goalMatrix = goal.getMatrixCopy();
-                int find = childMatrix[col][row];
-
-                if (find != 0) {
-                    for (int rowG = 0; rowG < numberN; rowG++) {
-                        for (int colG = 0; colG < numberN; colG++) {
-                            if (goalMatrix[colG][rowG] == find) {
-                                heuristic += Math.abs(rowG - row) + Math.abs(colG - col);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        costF = weight + heuristic;
-        return this.heuristic = heuristic;
+    public void setDepth(double depth) {
+        this.depth = depth;
     }
 
     public double getHeuristic() {
         return heuristic;
     }
-
 
     public double getCostF() {
         return costF;
@@ -149,6 +135,10 @@ public class Node implements Comparable<Node> {
 
     public void setCostF(double costF) {
         this.costF = costF;
+    }
+
+    public Movement getPrevMove() {
+        return prevMove;
     }
 
     @Override
@@ -163,13 +153,5 @@ public class Node implements Comparable<Node> {
     @Override
     public int compareTo(Node o) {
         return Double.compare(this.costF, o.getCostF());
-    }
-
-    public int getPREVMOVE() {
-        return PREVMOVE;
-    }
-
-    public void setPREVMOVE(int PREVMOVE) {
-        this.PREVMOVE = PREVMOVE;
     }
 }

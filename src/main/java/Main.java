@@ -9,6 +9,15 @@ public class Main {
 
     private static final String FILEPATH = "src/main/resources/";
     private static int numberN;
+    private static int[][] goal = {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 0}};
+    private static int[][] goal4 = {
+            {1, 2, 3, 4,},
+            {5, 6, 7, 8},
+            {9, 10, 11, 12},
+            {13, 14, 15, 0},};
 
     public static void main(String[] args) throws FileNotFoundException {
         if (args.length != 2) {
@@ -16,20 +25,13 @@ public class Main {
             System.exit(1);
         }
 
-        int[][] goal = {
-                {1, 2, 3},
-                {4, 5, 6},
-                {7, 8, 0}};
-        int[][] goal4 = {
-                {1, 2, 3, 4,},
-                {5, 6, 7, 8},
-                {9, 10, 11, 12},
-                {13, 14, 15, 0},};
-
         int[][] inputMatrix = readFile(args[0]);
         if (inputMatrix.length == 4) goal = goal4;
+
         Puzzle puzzle = new Puzzle(inputMatrix, goal);
         Node startNode = puzzle.getParentNode();
+
+        //here happens the magic
         Node finalNode = puzzle.calculate();
 
         StringBuilder output = new StringBuilder(startNode.printMatrix());
@@ -41,8 +43,8 @@ public class Main {
             System.exit(1);
         }
 
-
-        double weight = finalNode.getWeight();
+        //weight and number of moves is same as any move has the cost of one
+        double weight = finalNode.getDepth();
         String moves = puzzle.getMoves();
         int seenNodes = puzzle.getSeenNodes();
 
@@ -93,17 +95,15 @@ public class Main {
                 System.exit(1);
             }
 
-
             return matrix;
         }
-
     }
 
     public static void writeFile(String fileOutput, String output) throws FileNotFoundException {
         //output the results into a file:
         try (PrintWriter out = new PrintWriter(FILEPATH + fileOutput)) {
             out.print(output);
-        }//end try
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package main.java;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -9,90 +10,44 @@ import java.util.PriorityQueue;
  */
 public class Puzzle {
 
-
-    //TODO find better way, maybe use enum
-    private final int UP = 1;
-    private final int DOWN = 2;
-    private final int LEFT = 3;
-    private final int RIGHT = 4;
     private final int NUMBER_N;
-
-    public int getLIMIT() {
-        return LIMIT;
-    }
-
     private final int LIMIT = 3000;
-
+    private int seenNodes = 0;
     private String moveSeq;
-
     private Node parentNode;
     private Node goal;
     PriorityQueue<Node> liveNodes = new PriorityQueue<>();
     private List<Node> visited = new LinkedList<>();
 
-    public int getSeenNodes() {
-        return seenNodes;
-    }
-
-    private int seenNodes = 0;
-
-    public int getNUMBER_N() {
-        return NUMBER_N;
-    }
-
-    public String getMoveSeq() {
-        return moveSeq;
-    }
-
-    public Node getParentNode() {
-        return parentNode;
-    }
-
-    public Node getGoal() {
-        return goal;
-    }
-
-    public PriorityQueue<Node> getLiveNodes() {
-        return liveNodes;
-    }
-
-    public List<Node> getVisited() {
-        return visited;
-    }
-
     public Puzzle(int[][] inputMatrix, int[][] goalMatrix) {
         this.NUMBER_N = inputMatrix[0].length;
-        parentNode = new Node(inputMatrix, 0);
-        goal = new Node(goalMatrix, 0);
-        System.out.println("-START-");
-        System.out.println(printMatrix(parentNode));
-        System.out.print(printMatrix(goal));
-        System.out.println("------");
+        parentNode = new Node(inputMatrix, Movement.NONE);
+        goal = new Node(goalMatrix, Movement.NONE);
     }
 
-
     public Node calculate() {
+        //reset everything
         parentNode.setCostF(0);
-        parentNode.setWeight(0);
-
+        parentNode.setDepth(0);
         liveNodes.clear();
         visited.clear();
-
         goal.setParent(null);
 
         liveNodes.add(parentNode);
-        Node current = null;
+
+        Node current;
         while (!liveNodes.isEmpty() && seenNodes < LIMIT) {
-            System.out.println("liveNodes: " + liveNodes.size());
+            System.out.println("actual count of liveNodes: " + liveNodes.size());
+            //get the node with lowest cost
             current = liveNodes.peek();
-            seenNodes++;
+
+            //found the solution?
             if (current.equals(goal)) {
-                System.out.println("found solution" + current.getWeight());
-                System.out.println("checked nodes: " + seenNodes);
                 moveSeq = tracePath(current, "");
                 return current;
             }
 
+            //otherwise put it in the list of seen nodes
             liveNodes.remove(current);
             visited.add(current);
             findChildren(current);
@@ -100,9 +55,8 @@ public class Puzzle {
         return null;
     }
 
-
     private String tracePath(Node current, String moves) {
-        switch (current.getPREVMOVE()) {
+        switch (current.getPrevMove()) {
             case UP:
                 moves = "U" + moves;
                 break;
@@ -118,80 +72,73 @@ public class Puzzle {
             default:
                 return moves;
         }
+        //print the movement of the blanket
         System.out.println(current.printMatrix());
-        return tracePath(current.getNodeParent(), moves);
+        return tracePath(current.getParent(), moves);
     }
 
     private void findChildren(Node current) {
-        move(UP, current);
-        move(DOWN, current);
-        move(LEFT, current);
-        move(RIGHT, current);
+        move(Movement.UP, current);
+        move(Movement.DOWN, current);
+        move(Movement.LEFT, current);
+        move(Movement.RIGHT, current);
     }
 
-    private void move(int direction, Node current) {
+    private void move(Movement direction, Node current) {
         if (movementValid(direction, current)) {
-            //System.out.println("Move " + direction + " is valid. (U,D,L,R)" + "for");
-            //printMatrix(current);
             Node child = createChild(direction, current);
 
             child.setParent(current);
-            child.setWeight(current.getWeight() + 1);
-            child.setHeuristicCost(child, goal);
+            child.setDepth(current.getDepth() + 1);
+            child.setHeuristicCost(goal);
+            child.calculateF();
 
-
-            //TODO beautify code here
             if (!liveNodes.contains(child) && !visited.contains(child)) {
                 liveNodes.add(child);
+                seenNodes++;
             } else {
                 if (liveNodes.contains(child)) {
-                    Node foundNode = null;
-                    for (Node n : liveNodes) {
-                        if (child.equals(n)) {
-                            foundNode = n;
-                        }
-                    }
-                    if (child.getWeight() < foundNode.getWeight()) {
-                        liveNodes.remove(foundNode);
-                        liveNodes.add(child);
-                    }
-
+                    updateListWithLowerCostNode(child, liveNodes);
                 } else if (visited.contains(child)) {
-                    Node foundNode = null;
-                    for (Node n : visited) {
-                        if (child.equals(n)) {
-                            foundNode = n;
-                        }
-                    }
-                    if (child.getWeight() < foundNode.getWeight()) {
-                        visited.remove(foundNode);
-                        visited.add(child);
-                    }
+                    updateListWithLowerCostNode(child, visited);
                 }
             }
         }
     }
 
-    private boolean movementValid(int direction, Node current) {
+    private void updateListWithLowerCostNode(Node child, Collection<Node> list) {
+        Node foundNode = null;
+        for (Node n : list) {
+            if (child.equals(n)) {
+                foundNode = n;
+            }
+        }
+        if (child.getDepth() < foundNode.getDepth()) {
+            list.remove(foundNode);
+            list.add(child);
+        }
+    }
+
+    private boolean movementValid(Movement direction, Node current) {
         // check if the movement is valid, aka inside the grid
         switch (direction) {
             case UP:
-                if (current.getY() - 1 >= 0 && current.getPREVMOVE() != DOWN) return true;
+                if (current.getY() - 1 >= 0 && current.getPrevMove() != Movement.DOWN) return true;
                 break;
             case DOWN:
-                if (current.getY() + 1 < NUMBER_N && current.getPREVMOVE() != UP) return true;
+                if (current.getY() + 1 < NUMBER_N && current.getPrevMove() != Movement.UP) return true;
                 break;
             case LEFT:
-                if (current.getX() - 1 >= 0 && current.getPREVMOVE() != RIGHT) return true;
+                if (current.getX() - 1 >= 0 && current.getPrevMove() != Movement.RIGHT) return true;
                 break;
             case RIGHT:
-                if (current.getX() + 1 < NUMBER_N && current.getPREVMOVE() != LEFT) return true;
+                if (current.getX() + 1 < NUMBER_N && current.getPrevMove() != Movement.LEFT) return true;
                 break;
         }
         return false;
     }
 
-    private Node createChild(int direction, Node current) {
+    private Node createChild(Movement direction, Node current) {
         // move the empty space with swapping
         int[][] matrix = current.getMatrixCopy();
         int x = current.getX();
@@ -221,12 +168,43 @@ public class Puzzle {
         return node;
     }
 
-
     private String printMatrix(Node node) {
         return node.printMatrix();
     }
 
     public String getMoves() {
         return moveSeq;
+    }
+
+    public int getLIMIT() {
+        return LIMIT;
+    }
+
+    public int getSeenNodes() {
+        return seenNodes;
+    }
+
+    public int getNUMBER_N() {
+        return NUMBER_N;
+    }
+
+    public String getMoveSeq() {
+        return moveSeq;
+    }
+
+    public Node getParentNode() {
+        return parentNode;
+    }
+
+    public Node getGoal() {
+        return goal;
+    }
+
+    public PriorityQueue<Node> getLiveNodes() {
+        return liveNodes;
+    }
+
+    public List<Node> getVisited() {
+        return visited;
     }
 }
