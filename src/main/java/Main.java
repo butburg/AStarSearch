@@ -9,10 +9,17 @@ public class Main {
 
     private static final String FILEPATH = "src/main/resources/";
     private static int numberN;
+
+    /**
+     * this represents the final order we want to achieve for a 3x3 sliding puzzle
+     */
     private static int[][] goal = {
             {1, 2, 3},
             {4, 5, 6},
             {7, 8, 0}};
+    /**
+     * this represents the final order we want to achieve for a 4x4 sliding puzzle
+     */
     private static int[][] goal4 = {
             {1, 2, 3, 4,},
             {5, 6, 7, 8},
