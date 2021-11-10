@@ -6,22 +6,64 @@ import java.util.Arrays;
 
 /**
  * @author github.com/butburg (EW) on Okt 2021
+ * <p>
+ * A node or state is representing a specific state of the sliding puzzle game. While u move the blank tile,
+ * the field is changeing it state. Theses states are represented by one of these nodes. Additionally the node
+ * stores some informations about the actual cost of that state. This consists of the depth(how many parents
+ * recusrively the node has) and some heuristic costs (how far ist the actual state from the goal state). Also
+ * every node knows his parent node, so when a solution is found, the path to that solution can be backtraced.
  */
 public class Node implements Comparable<Node> {
+    /**
+     * the matrix represents the actual field. All the positions of the tiles and the blanke tile.
+     */
     private int[][] matrix;
-    //empty field location in puzzle;
+    /**
+     * Empty field location in puzzle. The blank tile. Coordinate x.
+     */
     private int x;
+    /**
+     * Empty field location in puzzle. The blank tile. Coordinate y.
+     */
     private int y;
 
-    //list of all new states/moved nodes from this node
+    /**
+     * list of all new states/moved nodes from this node
+     */
     private ArrayList<Node> nodeChildren;
+
+    /**
+     * The ancestor. The node this node origins from.
+     */
     private Node nodeParent;
+    /**
+     * How deep in the chain of parent nodes.
+     */
     private double depth; //weight / depth
+    /**
+     * The heuristic cost, in compare to the goal node. Lower when its close to the goal.
+     */
     private double heuristic; //heuristic
-    private double costF; //sum og g(v) and h(v)
+    /**
+     * The sum of the costs g(v)/depth and h(v)/heuristic.
+     */
+    private double costF;
+    /**
+     * The movement that was done to reach this state. Don't move into the opposite of it otherwise it will be
+     * like the parent. We don't need doubled states.
+     */
     private Movement prevMove;
+    /**
+     * The dimension of the matrix/field size.
+     */
     private int numberN;
 
+    /**
+     * Will initialize a new node. Will also read the position of the blank tile and store it as coordinates.
+     *
+     * @param matrix           the actual field the node will represent.
+     * @param previousMovement the movement, that was done to reach this new node.
+     */
     public Node(int[][] matrix, Movement previousMovement) {
         this.matrix = matrix;
         this.numberN = matrix.length;
@@ -30,6 +72,11 @@ public class Node implements Comparable<Node> {
         this.prevMove = previousMovement;
     }
 
+    /**
+     * stores the actual position of the blank node. Helps other methods to access that position easily.
+     *
+     * @param matrix the actual matrix the postion should be read from.
+     */
     private void setBlankPosition(int[][] matrix) {
         for (int y = 0; y < numberN; y++) {
             int[] row = matrix[y];
@@ -42,10 +89,20 @@ public class Node implements Comparable<Node> {
         }
     }
 
+    /**
+     * Calculates the sum of the costs g(v)/depth and h(v)/heuristic
+     *
+     * @return the cost F as double
+     */
     public double calculateF() {
         return costF = depth + heuristic;
     }
 
+    /**
+     * prints the matrix game field of this node/state
+     *
+     * @return
+     */
     public String printMatrix() {
         StringBuilder matrixPrint = new StringBuilder();
         for (int[] row : matrix) {
@@ -57,6 +114,13 @@ public class Node implements Comparable<Node> {
         return matrixPrint.toString();
     }
 
+    /**
+     * calculates and sets the heuristic cost. Will calculate that cost based on how far every tile is from its
+     * final position. The distance will be summed up from every tile, this will be the result.
+     *
+     * @param goal where the tiles should be from this nodes in an optimal situation
+     * @return the cost representing the distance/cost to reach the goal
+     */
     public double setHeuristicCost(Node goal) {
         // calculate heuristic
         double heuristic = 0.0;
@@ -141,6 +205,9 @@ public class Node implements Comparable<Node> {
         return prevMove;
     }
 
+    /**
+     * The method equals will return true, if the matrices are identical. The costs and other things are not considered.
+     */
     @Override
     public boolean equals(Object obj) {
         Node testNode = (Node) obj;
@@ -150,6 +217,12 @@ public class Node implements Comparable<Node> {
             return false;
     }
 
+    /**
+     * The nodes will be compared by there cost F. So that we can insert the nodes in a priority queue for example.
+     *
+     * @param o another node to campere this one to
+     * @return -1 if this cost is lower than the other cost, 0 equal and 1 if this cost is higher
+     */
     @Override
     public int compareTo(Node o) {
         return Double.compare(this.costF, o.getCostF());
